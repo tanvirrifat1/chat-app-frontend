@@ -4,10 +4,13 @@ import type React from "react";
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
 
   // State for input fields
   const [formData, setFormData] = useState({
@@ -27,13 +30,14 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log(formData); // Access all input values here
+    console.log(formData);
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+
     setIsLoading(false);
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">

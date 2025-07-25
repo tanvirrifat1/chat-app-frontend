@@ -13,12 +13,12 @@ export default function Verify() {
   const [timeLeft, setTimeLeft] = useState(60);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [timeLeft]);
+  const emailFromQuery =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("email")
+      : null;
+
+  console.log(emailFromQuery);
 
   const handleInputChange = (index: number, value: string) => {
     if (value.length > 1) return;
@@ -73,16 +73,6 @@ export default function Verify() {
     console.log("Verification code:", code.join(""));
   };
 
-  const handleResend = async () => {
-    setIsResending(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsResending(false);
-    setTimeLeft(60);
-    setCode(["", "", "", "", "", ""]);
-    inputRefs.current[0]?.focus();
-  };
-
   const isCodeComplete = code.every((digit) => digit !== "");
 
   return (
@@ -112,10 +102,6 @@ export default function Verify() {
               </h1>
               <p className="text-base text-slate-600 leading-relaxed">
                 We have sent a 6-digit verification code to
-                <br />
-                <span className="font-medium text-slate-900">
-                  john.doe@example.com
-                </span>
               </p>
             </div>
           </div>
@@ -168,34 +154,6 @@ export default function Verify() {
                 "Verify Email"
               )}
             </button>
-
-            {/* Resend Section */}
-            <div className="text-center space-y-3">
-              <p className="text-sm text-slate-600">
-                Did&apos;t receive the code?
-              </p>
-
-              {timeLeft > 0 ? (
-                <p className="text-sm text-slate-500">
-                  Resend code in {timeLeft}s
-                </p>
-              ) : (
-                <button
-                  onClick={handleResend}
-                  disabled={isResending}
-                  className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors duration-200 disabled:text-slate-400"
-                >
-                  {isResending ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-3 h-3 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                      Sending...
-                    </div>
-                  ) : (
-                    "Resend code"
-                  )}
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </div>
