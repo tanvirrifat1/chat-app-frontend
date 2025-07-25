@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Mail, Smartphone } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 
 export default function Verify() {
@@ -111,7 +111,7 @@ export default function Verify() {
                 Verify your email
               </h1>
               <p className="text-base text-slate-600 leading-relaxed">
-                We've sent a 6-digit verification code to
+                We have sent a 6-digit verification code to
                 <br />
                 <span className="font-medium text-slate-900">
                   john.doe@example.com
@@ -132,7 +132,9 @@ export default function Verify() {
                 {code.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
@@ -169,7 +171,9 @@ export default function Verify() {
 
             {/* Resend Section */}
             <div className="text-center space-y-3">
-              <p className="text-sm text-slate-600">Didn't receive the code?</p>
+              <p className="text-sm text-slate-600">
+                Did&apos;t receive the code?
+              </p>
 
               {timeLeft > 0 ? (
                 <p className="text-sm text-slate-500">

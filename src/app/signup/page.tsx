@@ -8,11 +8,27 @@ import Link from "next/link";
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+
+  // State for input fields
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log(formData); // Access all input values here
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
@@ -49,8 +65,9 @@ export default function Signup() {
                   <input
                     id="name"
                     name="name"
-                    type="name"
-                    autoComplete="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange}
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"
                     placeholder="Enter your name"
@@ -73,7 +90,8 @@ export default function Signup() {
                     id="email"
                     name="email"
                     type="email"
-                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"
                     placeholder="Enter your email"
@@ -97,7 +115,8 @@ export default function Signup() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     required
                     className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"
                     placeholder="Enter your password"
