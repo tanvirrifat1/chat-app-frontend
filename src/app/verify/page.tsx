@@ -12,8 +12,7 @@ export default function Verify() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
-
+  const [timeLeft, setTimeLeft] = useState(180);
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +22,7 @@ export default function Verify() {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer); // Clean up the interval on component unmount
+    return () => clearInterval(timer);
   }, [timeLeft]);
 
   const minutes = Math.floor(timeLeft / 60);

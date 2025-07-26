@@ -54,6 +54,8 @@ export default function Signup() {
         console.error("Unknown error:", error);
       }
     }
+
+    setIsLoading(false);
   };
 
   return (

@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLoginMutation } from "../redux/feature/userAPI";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +14,8 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const router = useRouter();
+
+  const [login] = useLoginMutation();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -30,11 +34,30 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log(formData);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const result = await login(formData).unwrap();
 
-    router.push(`/`);
+      if (result?.success) {
+        toast.success(result.message || "Sign up successful!");
+      }
+
+      // Store only the correct accessToken in localStorage
+      localStorage.setItem("accessToken", result.data.accessToken);
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Navigate to the home page (if needed)
+      router.push(`/`);
+    } catch (error: any) {
+      console.error("Error during sign up:", error);
+      if (error?.data) {
+        console.error("Error details:", error.data.message || error.data);
+        toast.error(error.data.message || error.data);
+      } else {
+        console.error("Unknown error:", error);
+      }
+    }
 
     setIsLoading(false);
   };
@@ -114,6 +137,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
+                    minLength={8}
                     className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"
                     placeholder="Enter your password"
                   />
