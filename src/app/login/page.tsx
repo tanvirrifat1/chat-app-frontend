@@ -4,17 +4,38 @@ import type React from "react";
 import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  const router = useRouter();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
+    console.log(formData);
+
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    router.push(`/`);
+
     setIsLoading(false);
   };
 
@@ -62,6 +83,8 @@ export default function LoginPage() {
                   <input
                     id="email"
                     name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     type="email"
                     autoComplete="email"
                     required
@@ -86,6 +109,8 @@ export default function LoginPage() {
                   <input
                     id="password"
                     name="password"
+                    onChange={handleInputChange}
+                    value={formData.password}
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
