@@ -1,24 +1,40 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
+import { useVerifyEmailMutation } from "../redux/feature/userAPI";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function Verify() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (timeLeft === 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer); // Clean up the interval on component unmount
+  }, [timeLeft]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
 
   const emailFromQuery =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("email")
       : null;
 
-  console.log(emailFromQuery);
+  const [verifyEmail] = useVerifyEmailMutation();
 
   const handleInputChange = (index: number, value: string) => {
     if (value.length > 1) return;
@@ -65,12 +81,29 @@ export default function Verify() {
     if (code.some((digit) => digit === "")) return;
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsLoading(false);
 
-    // Handle verification result here
-    console.log("Verification code:", code.join(""));
+    const formData = {
+      email: emailFromQuery,
+      oneTimeCode: Number(code.join("")),
+    };
+
+    try {
+      const result = await verifyEmail(formData).unwrap();
+
+      if (result?.success) {
+        toast.success(result.message || "Verification successful!");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      router.push(`/login`);
+    } catch (error: any) {
+      if (error?.data) {
+        toast.error(error.data.message || error.data);
+      } else {
+        console.error("Unknown error:", error);
+      }
+    }
+    setIsLoading(false);
   };
 
   const isCodeComplete = code.every((digit) => digit !== "");
@@ -154,6 +187,12 @@ export default function Verify() {
                 "Verify Email"
               )}
             </button>
+            <div>
+              <p className="text-base text-slate-600 leading-relaxed">
+                OTP will expire in {minutes}:{seconds < 10 ? "0" : ""}
+                {seconds} minutes
+              </p>
+            </div>
           </div>
         </div>
       </div>

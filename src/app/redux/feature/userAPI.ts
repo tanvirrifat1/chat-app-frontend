@@ -10,7 +10,16 @@ const authAPI = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+
+    verifyEmail: build.mutation({
+      query: (data) => ({
+        url: "/auth/verify-email",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
-export const { useSignUpMutation } = authAPI;
+export const { useSignUpMutation, useVerifyEmailMutation } = authAPI;

@@ -5,12 +5,16 @@ import { useState } from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSignUpMutation } from "../redux/feature/userAPI";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
+
+  const [signUp] = useSignUpMutation();
 
   // State for input fields
   const [formData, setFormData] = useState({
@@ -30,14 +34,28 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log(formData);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const result = await signUp(formData).unwrap();
 
-    router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+      if (result?.success) {
+        toast.success(result.message || "Sign up successful!");
+      }
 
-    setIsLoading(false);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+    } catch (error: any) {
+      console.error("Error during sign up:", error);
+      if (error?.data) {
+        console.error("Error details:", error.data.message || error.data);
+        toast.error(error.data.message || error.data);
+      } else {
+        console.error("Unknown error:", error);
+      }
+    }
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -122,6 +140,7 @@ export default function Signup() {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    minLength={8}
                     className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"
                     placeholder="Enter your password"
                   />
