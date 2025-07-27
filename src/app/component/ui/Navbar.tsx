@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
@@ -17,7 +18,9 @@ const Navbar = () => {
     <div>
       <div className="navbar bg-base-100 shadow-sm">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl">Chat-App</a>
+          <Link href="/">
+            <p className="btn btn-ghost text-xl">Chat-App</p>
+          </Link>
         </div>
         <div className="flex-none">
           <ul className="menu menu-horizontal px-1">
@@ -25,7 +28,9 @@ const Navbar = () => {
               <a>Blog</a>
             </li>
             <li>
-              <a>Profile</a>
+              <Link href="/profile">
+                <p>Profile</p>
+              </Link>
             </li>
           </ul>
         </div>
