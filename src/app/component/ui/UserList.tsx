@@ -1,13 +1,20 @@
 "use client";
 
+import { useSendMsgMutation } from "@/app/redux/feature/msgAPI";
 import { useGetAllUsersQuery } from "@/app/redux/feature/userAPI";
 import React from "react";
 import { TiMessageTyping } from "react-icons/ti";
 
 const UserList = () => {
-  const { data: users, isLoading, error } = useGetAllUsersQuery("");
+  const { data: users, isLoading } = useGetAllUsersQuery("");
+
+  const [data] = useSendMsgMutation();
 
   if (isLoading) return <p>Loading...</p>;
+
+  const handleSendMessage = (receiverId: string) => {
+    data({ receiverId });
+  };
 
   return (
     <div>
@@ -27,7 +34,10 @@ const UserList = () => {
                 {user.email} {/* Displaying dynamic reason */}
               </div>
             </div>
-            <button className="btn btn-square btn-ghost">
+            <button
+              onClick={() => handleSendMessage(user._id)}
+              className="btn btn-square btn-ghost"
+            >
               <TiMessageTyping size={30} />
             </button>
           </li>

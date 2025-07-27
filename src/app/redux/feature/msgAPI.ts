@@ -5,9 +5,13 @@ const msgAPI = baseApi.injectEndpoints({
     sendMsg: build.mutation({
       query: (data) => ({
         url: `inbox/send-message/${data.receiverId}`,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
         method: "POST",
         body: data,
       }),
+
       invalidatesTags: ["Message"],
     }),
   }),
