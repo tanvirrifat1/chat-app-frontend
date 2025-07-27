@@ -28,8 +28,20 @@ const authAPI = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+
+    getAllUsers: build.query({
+      query: () => ({
+        url: "/user/get-all-users",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
   }),
 });
 
-export const { useSignUpMutation, useVerifyEmailMutation, useLoginMutation } =
-  authAPI;
+export const {
+  useSignUpMutation,
+  useVerifyEmailMutation,
+  useLoginMutation,
+  useGetAllUsersQuery,
+} = authAPI;
