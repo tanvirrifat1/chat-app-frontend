@@ -1,66 +1,34 @@
 "use client";
 
 import React, { useState } from "react";
-import { MenuIcon, XIcon } from "lucide-react"; // Assuming you're using lucide-react for icons
+import { MenuIcon, XIcon } from "lucide-react";
+import { useGetMyInboxQuery } from "../redux/feature/msgAPI";
 
 const Messenger: React.FC = () => {
-  const [selectedChat, setSelectedChat] = useState<number | null>(null);
+  const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false); // State for sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
-  // Sample data with proper typing
-  const [messages, setMessages] = useState<any>({
-    1: [
-      {
-        id: 1,
-        sender: "Obi-Wan Kenobi",
-        avatar: "https://img.daisyui.com/images/profile/demo/kenobee@192.webp",
-        text: "You were the Chosen One!",
-        time: "12:45",
-        status: "Delivered",
-      },
-      {
-        id: 2,
-        sender: "You",
-        avatar: "https://img.daisyui.com/images/profile/demo/you@192.webp",
-        text: "I hate you!",
-        time: "12:46",
-        status: "Seen at 12:46",
-      },
-    ],
-    2: [
-      {
-        id: 3,
-        sender: "Yoda",
-        avatar: "https://img.daisyui.com/images/profile/demo/yoda@192.webp",
-        text: "Do or do not, there is no try.",
-        time: "13:00",
-        status: "Delivered",
-      },
-    ],
-  });
+  const { data, isLoading } = useGetMyInboxQuery("");
 
-  const chats: any = [
-    {
-      id: 1,
-      name: "Obi-Wan Kenobi",
-      avatar: "https://img.daisyui.com/images/profile/demo/kenobee@192.webp",
-      lastMessage: "You were the Chosen One!",
-    },
-    {
-      id: 2,
-      name: "Yoda",
-      avatar: "https://img.daisyui.com/images/profile/demo/yoda@192.webp",
-      lastMessage: "Do or do not...",
-    },
-  ];
+  // Initialize messages state as an empty object
+  const [messages, setMessages] = useState<Record<string, any[]>>({});
+
+  // Map API data to chats format
+  const chats =
+    data?.data?.data?.map((inbox: any) => ({
+      id: inbox.inboxId,
+      name: inbox.name,
+      avatar: inbox.image,
+      lastMessage: inbox.lastMessage || "No messages yet",
+    })) || [];
 
   const handleSendMessage = () => {
     if (newMessage.trim() && selectedChat) {
       const newMsg = {
         id: Date.now(),
         sender: "You",
-        avatar: "https://img.daisyui.com/images/profile/demo/you@192.webp",
+        avatar: "/images/you.png", // Replace with actual user avatar
         text: newMessage,
         time: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -68,12 +36,11 @@ const Messenger: React.FC = () => {
         }),
         status: "Sent",
       };
-      setMessages((prev: any) => ({
+      setMessages((prev) => ({
         ...prev,
         [selectedChat]: [...(prev[selectedChat] || []), newMsg],
       }));
       setNewMessage("");
-      // Close sidebar after sending a message on mobile
       setIsSidebarOpen(false);
     }
   };
@@ -81,6 +48,10 @@ const Messenger: React.FC = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -104,12 +75,15 @@ const Messenger: React.FC = () => {
             }`}
             onClick={() => {
               setSelectedChat(chat.id);
-              setIsSidebarOpen(false); // Close sidebar on chat select (mobile)
+              setIsSidebarOpen(false);
             }}
           >
             <div className="avatar">
               <div className="w-12 rounded-full">
-                <img src={chat.avatar} alt={chat.name} />
+                <img
+                  src={process.env.NEXT_PUBLIC_IMAGE_URL + chat.avatar}
+                  alt={chat.name}
+                />
               </div>
             </div>
             <div className="ml-3">

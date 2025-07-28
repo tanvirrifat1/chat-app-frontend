@@ -14,7 +14,18 @@ const msgAPI = baseApi.injectEndpoints({
 
       invalidatesTags: ["Message"],
     }),
+
+    getMyInbox: build.query({
+      query: () => ({
+        url: `/inbox/get-inbox`,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        method: "GET",
+      }),
+      providesTags: ["Message"],
+    }),
   }),
 });
 
-export const { useSendMsgMutation } = msgAPI;
+export const { useSendMsgMutation, useGetMyInboxQuery } = msgAPI;
