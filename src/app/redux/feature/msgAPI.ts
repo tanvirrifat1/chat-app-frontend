@@ -25,7 +25,19 @@ const msgAPI = baseApi.injectEndpoints({
       }),
       providesTags: ["Message"],
     }),
+
+    getMyMessages: build.query({
+      query: (id) => ({
+        url: `/message/get-message/${id}`,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        method: "GET",
+      }),
+      providesTags: ["Message"],
+    }),
   }),
 });
 
-export const { useSendMsgMutation, useGetMyInboxQuery } = msgAPI;
+export const { useSendMsgMutation, useGetMyInboxQuery, useGetMyMessagesQuery } =
+  msgAPI;

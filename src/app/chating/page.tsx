@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { MenuIcon, XIcon } from "lucide-react";
-import { useGetMyInboxQuery } from "../redux/feature/msgAPI";
+import {
+  useGetMyInboxQuery,
+  useGetMyMessagesQuery,
+} from "../redux/feature/msgAPI";
 import { io, Socket } from "socket.io-client";
 
 // Initialize Socket.IO client
@@ -17,6 +20,12 @@ export default function Messenger() {
   const [newMessage, setNewMessage] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [messages, setMessages] = useState<Record<string, any[]>>({});
+
+  const { data: messagesData } = useGetMyMessagesQuery(selectedChat || "");
+
+  console.log(selectedChat, "selectedChat");
+
+  console.log(messagesData, "messagesData");
 
   const { data, isLoading } = useGetMyInboxQuery("");
   const currentUserId = "6881bd7d4be36a3b3e49c432"; // Replace with actual logged-in user ID
