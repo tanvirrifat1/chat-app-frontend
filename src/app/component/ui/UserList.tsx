@@ -1,6 +1,9 @@
 "use client";
 
-import { useSendMsgMutation } from "@/app/redux/feature/msgAPI";
+import {
+  useGetMyInboxQuery,
+  useSendMsgMutation,
+} from "@/app/redux/feature/msgAPI";
 import { useGetAllUsersQuery } from "@/app/redux/feature/userAPI";
 import { useRouter } from "next/navigation";
 import React from "react";

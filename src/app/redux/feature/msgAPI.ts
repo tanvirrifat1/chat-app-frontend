@@ -4,7 +4,7 @@ const msgAPI = baseApi.injectEndpoints({
   endpoints: (build) => ({
     sendMsg: build.mutation({
       query: (data) => ({
-        url: `inbox/send-message/${data.receiverId}`,
+        url: `/inbox/send-message/${data.receiverId}`,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },

@@ -1,20 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuIcon, XIcon } from "lucide-react";
 import { useGetMyInboxQuery } from "../redux/feature/msgAPI";
+import { io, Socket } from "socket.io-client";
 
-const Messenger: React.FC = () => {
+// Initialize Socket.IO client
+const socket = io("http://10.10.12.25:5006", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
+
+export default function Messenger() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-
-  const { data, isLoading } = useGetMyInboxQuery("");
-
-  // Initialize messages state as an empty object
   const [messages, setMessages] = useState<Record<string, any[]>>({});
 
-  // Map API data to chats format
+  const { data, isLoading } = useGetMyInboxQuery("");
+  const currentUserId = "6881bd7d4be36a3b3e49c432"; // Replace with actual logged-in user ID
+
   const chats =
     data?.data?.data?.map((inbox: any) => ({
       id: inbox.inboxId,
@@ -23,12 +29,57 @@ const Messenger: React.FC = () => {
       lastMessage: inbox.lastMessage || "No messages yet",
     })) || [];
 
+  useEffect(() => {
+    if (selectedChat) {
+      socket.emit("join", selectedChat);
+    }
+
+    if (selectedChat) {
+      socket.on(`receive-message:${selectedChat}`, (newMsg: any) => {
+        setMessages((prev) => ({
+          ...prev,
+          [selectedChat]: [
+            ...(prev[selectedChat] || []),
+            {
+              id: newMsg._id || Date.now(),
+              sender:
+                newMsg.senderId === currentUserId ? "You" : newMsg.senderId,
+              text: newMsg.message,
+              time: new Date(newMsg.createdAt || Date.now()).toLocaleTimeString(
+                [],
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              ),
+              status: newMsg.senderId === currentUserId ? "Sent" : "Received",
+            },
+          ],
+        }));
+      });
+    }
+
+    return () => {
+      if (selectedChat) {
+        socket.off(`receive-message:${selectedChat}`);
+      }
+    };
+  }, [selectedChat]);
+
   const handleSendMessage = () => {
     if (newMessage.trim() && selectedChat) {
+      const messageData = {
+        inboxId: selectedChat,
+        senderId: currentUserId,
+        message: newMessage,
+      };
+
+      socket.emit("send-message", messageData);
+
       const newMsg = {
         id: Date.now(),
         sender: "You",
-        avatar: "/images/you.png", // Replace with actual user avatar
+        avatar: "/images/you.png",
         text: newMessage,
         time: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -36,10 +87,12 @@ const Messenger: React.FC = () => {
         }),
         status: "Sent",
       };
+
       setMessages((prev) => ({
         ...prev,
         [selectedChat]: [...(prev[selectedChat] || []), newMsg],
       }));
+
       setNewMessage("");
       setIsSidebarOpen(false);
     }
@@ -67,29 +120,28 @@ const Messenger: React.FC = () => {
             <XIcon className="w-6 h-6" />
           </button>
         </div>
-        {chats.map((chat: any) => (
+        {chats?.map((chat: any) => (
           <div
-            key={chat.id}
+            key={chat?.id}
             className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${
-              selectedChat === chat.id ? "bg-gray-200" : ""
+              selectedChat === chat?.id ? "bg-gray-200" : ""
             }`}
             onClick={() => {
               setSelectedChat(chat.id);
               setIsSidebarOpen(false);
             }}
           >
-            <div className="avatar">
-              <div className="w-12 rounded-full">
-                <img
-                  src={process.env.NEXT_PUBLIC_IMAGE_URL + chat.avatar}
-                  alt={chat.name}
-                />
-              </div>
+            <div className="w-12 h-12 rounded-full overflow-hidden">
+              <img
+                src={process.env.NEXT_PUBLIC_IMAGE_URL + chat?.avatar}
+                alt={chat?.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="ml-3">
-              <p className="font-semibold">{chat.name}</p>
+              <p className="font-semibold">{chat?.name}</p>
               <p className="text-sm text-gray-500 truncate">
-                {chat.lastMessage}
+                {chat?.lastMessage}
               </p>
             </div>
           </div>
@@ -98,20 +150,22 @@ const Messenger: React.FC = () => {
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Mobile Header with Hamburger Menu */}
+        {/* Mobile Header */}
         <div className="bg-white p-4 border-b flex items-center justify-between md:hidden">
           <button onClick={toggleSidebar}>
             <MenuIcon className="w-6 h-6" />
           </button>
           {selectedChat && (
             <div className="flex items-center">
-              <div className="avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    src={chats.find((c: any) => c.id === selectedChat)?.avatar}
-                    alt="avatar"
-                  />
-                </div>
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <img
+                  src={
+                    process.env.NEXT_PUBLIC_IMAGE_URL +
+                    chats.find((c: any) => c.id === selectedChat)?.avatar
+                  }
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h2 className="ml-3 font-semibold">
                 {chats.find((c: any) => c.id === selectedChat)?.name}
@@ -120,16 +174,18 @@ const Messenger: React.FC = () => {
           )}
         </div>
 
-        {/* Desktop Chat Header */}
+        {/* Desktop Header */}
         {selectedChat && (
           <div className="hidden md:block bg-white p-4 border-b flex items-center">
-            <div className="avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  src={chats.find((c: any) => c.id === selectedChat)?.avatar}
-                  alt="avatar"
-                />
-              </div>
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              <img
+                src={
+                  process.env.NEXT_PUBLIC_IMAGE_URL +
+                  chats.find((c: any) => c.id === selectedChat)?.avatar
+                }
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
             </div>
             <h2 className="ml-3 font-semibold">
               {chats.find((c: any) => c.id === selectedChat)?.name}
@@ -138,23 +194,35 @@ const Messenger: React.FC = () => {
         )}
 
         {/* Messages */}
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
           {selectedChat ? (
-            (messages[selectedChat] || []).map((msg: any) => (
-              <div
-                key={msg.id}
-                className={`chat ${
-                  msg.sender === "You" ? "chat-end" : "chat-start"
-                }`}
-              >
-                <div className="chat-header">
-                  {msg.sender}
-                  <time className="text-xs opacity-50 ml-2">{msg.time}</time>
+            <div className="space-y-4">
+              {(messages[selectedChat] || []).map((msg: any) => (
+                <div
+                  key={msg.id}
+                  className={`chat ${
+                    msg.sender !== "You" ? "chat-end" : "chat-start"
+                  } flex items-end`}
+                >
+                  <div className="max-w-[70%]">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>{msg.sender}</span>
+                      <time className="text-xs opacity-50">{msg.time}</time>
+                    </div>
+                    <div
+                      className={`p-3 rounded-lg break-words whitespace-normal max-w-full ${
+                        msg.sender === "You"
+                          ? "bg-gray-200 text-gray-800"
+                          : "bg-blue-500 text-white"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                    <div className="text-xs opacity-50 mt-1">{msg.status}</div>
+                  </div>
                 </div>
-                <div className="chat-bubble">{msg.text}</div>
-                <div className="chat-footer opacity-50">{msg.status}</div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-gray-500">Select a chat to start messaging</p>
@@ -162,7 +230,7 @@ const Messenger: React.FC = () => {
           )}
         </div>
 
-        {/* Message Input */}
+        {/* Input */}
         {selectedChat && (
           <div className="bg-white p-4 border-t flex items-center">
             <input
@@ -170,10 +238,15 @@ const Messenger: React.FC = () => {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="input input-bordered flex-1 mr-2 text-base"
+              className="input input-bordered flex-1 mr-2 text-base rounded-full"
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleSendMessage();
+                }
+              }}
             />
             <button
-              className="btn btn-primary px-4 py-2"
+              className="btn btn-primary px-4 py-2 rounded-full"
               onClick={handleSendMessage}
             >
               Send
@@ -183,6 +256,4 @@ const Messenger: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Messenger;
+}

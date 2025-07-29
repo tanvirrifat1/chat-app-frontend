@@ -5,6 +5,7 @@ import { useGetProfileQuery } from "../redux/feature/profileAPI";
 
 import { FaEdit } from "react-icons/fa";
 import Link from "next/link";
+import { useGetMyInboxQuery } from "../redux/feature/msgAPI";
 
 const profilePage = () => {
   const { data: profile, isLoading, error } = useGetProfileQuery("");

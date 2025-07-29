@@ -32,6 +32,9 @@ const authAPI = baseApi.injectEndpoints({
     getAllUsers: build.query({
       query: () => ({
         url: "/user/get-all-users",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
         method: "GET",
       }),
       providesTags: ["User"],
