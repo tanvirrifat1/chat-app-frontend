@@ -1,5 +1,6 @@
 import React from "react";
 import UserList from "./component/ui/UserList";
+import IsUser from "./component/ui/IsUser";
 
 const Home = () => {
   return (
