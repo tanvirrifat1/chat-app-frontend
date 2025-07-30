@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLoginMutation } from "../redux/feature/userAPI";
 import toast from "react-hot-toast";
+import { saveToken } from "../service/authService";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,10 +46,10 @@ export default function LoginPage() {
       // Store only the correct accessToken in localStorage
       localStorage.setItem("accessToken", result.data.accessToken);
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await saveToken(result.data.accessToken);
+      router.push(`/`);
 
       // Navigate to the home page (if needed)
-      router.push(`/`);
     } catch (error: any) {
       console.error("Error during sign up:", error);
       if (error?.data) {
