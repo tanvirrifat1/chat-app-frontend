@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import IsUser from "./IsUser";
+import { logout } from "@/app/service/authService";
 
 const Navbar = () => {
   const pathname = usePathname();
+  const [isUser, setIsUser] = useState(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const user: any = await IsUser();
+      setIsUser(user);
+    };
+    checkUser();
+  }, []);
 
   if (
     pathname === "/signup" ||
@@ -14,6 +25,12 @@ const Navbar = () => {
   ) {
     return null;
   }
+
+  const handleLogout = async () => {
+    await logout();
+    localStorage.removeItem("accessToken");
+  };
+
   return (
     <div>
       <div className="navbar bg-base-100 shadow-sm">
@@ -27,11 +44,15 @@ const Navbar = () => {
             <li>
               <a>Blog</a>
             </li>
-            <li>
-              <Link href="/profile">
-                <p>Profile</p>
-              </Link>
-            </li>
+            {isUser ? (
+              <li onClick={handleLogout}>
+                <Link href="/profile">Logout</Link>
+              </li>
+            ) : (
+              <li>
+                <Link href="/login">Login</Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>

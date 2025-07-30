@@ -4,16 +4,16 @@ import { jwtDecode } from "jwt-decode";
 const IsUser = async () => {
   try {
     const token = await getCurrentUser();
-    console.log("Token:", token);
 
     if (token) {
       const decoded = jwtDecode(token);
-      console.log("Decoded Token:", decoded);
+
+      return decoded;
     } else {
-      console.log("No token found.");
+      return null;
     }
   } catch (error) {
-    console.error("Error decoding token:", error);
+    return null;
   }
 };
 
